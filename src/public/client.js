@@ -1,105 +1,170 @@
+// Main data storage object, uses Immutable for the rover list
 let store = {
-    user: { name: "Student" },
-    apod: '',
-    rovers: ['Curiosity', 'Opportunity', 'Spirit'],
+    selectedRover: '',
+    data: '',
+    rovers: Immutable.List(['Spirit', 'Opportunity', 'Curiosity']),
+    RoverData: '',
 }
 
 // add our markup to the page
 const root = document.getElementById('root')
 
 const updateStore = (store, newState) => {
-    store = Object.assign(store, newState)
-    render(root, store)
-}
-
+        store = Object.assign(store, newState)
+        render(root, store)
+    }
+    // use of async with render function
 const render = async(root, state) => {
     root.innerHTML = App(state)
 }
 
-
-// create content
+// function that creates intro content
 const App = (state) => {
-    let { rovers, apod } = state
 
     return `
-        <header></header>
+        <header><h1>Mars Rover Dashboard</h1></header>
         <main>
-            ${Greeting(store.user.name)}
             <section>
-                <h3>Put things on the page!</h3>
-                <p>Here is an example section.</p>
-                <p>
-                    One of the most popular websites at NASA is the Astronomy Picture of the Day. In fact, this website is one of
-                    the most popular websites across all federal agencies. It has the popular appeal of a Justin Bieber video.
-                    This endpoint structures the APOD imagery and associated metadata so that it can be repurposed for other
-                    applications. In addition, if the concept_tags parameter is set to True, then keywords derived from the image
-                    explanation are returned. These keywords could be used as auto-generated hashtags for twitter or instagram feeds;
-                    but generally help with discoverability of relevant imagery.
-                </p>
-                ${ImageOfTheDay(apod)}
+                ${RoverData(state)}
             </section>
         </main>
-        <footer></footer>
+        <footer>
+            <h3>A project by Daniel Henderson Developer</h3>
+        </footer>
     `
 }
 
-// listening for load event because page should load before any JS is called
+// listening for load event, page should load before any JS is called
 window.addEventListener('load', () => {
     render(root, store)
 })
 
 // ------------------------------------------------------  COMPONENTS
 
-// Pure function that renders conditional information -- THIS IS JUST AN EXAMPLE, you can delete it.
-const Greeting = (name) => {
-    if (name) {
-        return `
-            <h1>Welcome, ${name}!</h1>
-        `
+const RoverData = (state) => {
+
+    // If no rover is selected in state, create the rover card HTML with 
+    // wrapInDivFunction and return
+    if (!state.selectedRover) {
+        return (`
+            ${wrapInDivFunction(state, 'rover-container', joinMapperFunction,
+            state.rovers, roverCardMakerFunction)}
+        `)
     }
 
-    return `
-        <h1>Hello!</h1>
-    `
+    // If a rover is selected but there's no data yet, call the API with
+    // getRoverData and return
+    // getRoverData will call the updateStore function, which calls this
+    // function again, so returning immediately after prevents errors in
+    // console with undefined data
+    if (!state.data) {
+        getRoverData(state)
+        return ''
+    }
+
+    // Array of photos from the rover
+    let photos
+    if (state.selectedRover === 'Curiosity') {
+        photos = state.data.results.latest_photos
+    } else {
+        photos = state.data.results.photos
+    }
+
+    // Map the photo array to get the URLs of the photos
+    const photoURL = photos.map(photo => photo.img_src)
+
+    // All photos will be from the same date, so use photo[0]
+    const photoDate = photos[0].earth_date
+
+    // Get the required mission data
+    const { name, launch_date, landing_date, status } = photos[0].rover
+
+    // Makes the information HTML and calls wrapInDivFunction to start the
+    // production of the photo array
+    return (`
+        <ul class="info-container">
+            <li>Rover name: ${name}</li>
+            <li>Launched from Earth on: ${launch_date}</li>
+            <li>Landed on Mars on: ${landing_date}</li>
+            <li>Mission status: ${status}</li>
+            <li>Photos taken on: ${photoDate}</li>
+        </ul>
+        <button onclick="updateStore({selectedRover: '', data: ''})" class="back-button">Back</button>
+        ${wrapInDivFunction(state, 'photo-container', joinMapperFunction,
+        photoURL, photoElementMakerFunction)}
+        <button onclick="updateStore({selectedRover: '', data: ''})" class="back-button">Back</button>
+    `)
 }
 
-// Example of a pure function that renders infomation requested from the backend
-const ImageOfTheDay = (apod) => {
+// --------------- COMPONENT HELPER FUNCTIONS, INCLUDING HIGHER-ORDER FUNCTIONS
 
-    // If image does not already exist, or it is not from today -- request it again
-    const today = new Date()
-    const photodate = new Date(apod.date)
-    console.log(photodate.getDate(), today.getDate());
+// /**
+//  * @description Higher-order function to wrap elements of mapped array in a div
+//  * it is used to make containers for the rover cards and photos
+//  * @param {string} divClass Name of the class that will be assigned to the div
+//  * @param {function} mapperFunction Function that will do the mapping
+//  * @param {Array} mapThis The array that will be mapped
+//  * @param {function} elementMakerFunction Function to create the element HTML
+//  */
+const wrapInDivFunction = (state, divClass, mapperFunction, mapThis, elementMakerFunction) => {
+    return (`
+    <div class="${divClass}">
+        ${mapperFunction(state, mapThis, elementMakerFunction)}
+    </div >
+    `)
+}
 
-    console.log(photodate.getDate() === today.getDate());
-    if (!apod || apod.date === today.getDate()) {
-        getImageOfTheDay(store)
-    }
+// /**
+// //  * @description Higher-order function to make a joined map
+// //  * In this project it is used to make arrays of rover cards and photos and join
+// //  * @param {Array} mapThis The array to be mapped and joined
+// //  * @param {function} elementMakerFunction Function to use for mapping
+// //  */
+const joinMapperFunction = (state, mapThis, elementMakerFunction) => {
+    return (`
+        ${mapThis.map(x => elementMakerFunction(state, x)).join('')}
+    `)
+}
 
-    // check if the photo of the day is actually type video!
-    if (apod.media_type === "video") {
-        return (`
-            <p>See today's featured video <a href="${apod.url}">here</a></p>
-            <p>${apod.title}</p>
-            <p>${apod.explanation}</p>
-        `)
-    } else {
-        return (`
-            <img src="${apod.image.url}" height="350px" width="100%" />
-            <p>${apod.image.explanation}</p>
-        `)
-    }
+// /**
+//  * @description Makes button HTML for a rover card on main UI
+//  * @param {string} rover Name of the rover
+//  * @returns Button HTML
+//  */
+const roverCardMakerFunction = (state, rover) => {
+    return (`
+    <button class="rover-card"
+    onclick="setTimeout(updateStore, 3000, {selectedRover: '${rover}'})">
+    <h2 class="card-title">${rover}</h2>
+    </button>
+    `)
+}
+
+// /**
+//  * @description Makes image tag HTML for a photo URL
+//  * @param {string} url URL of the photo
+//  * @returns Image tag HTML
+//  */
+const photoElementMakerFunction = (state, url) => {
+    return (`
+    <img class="photo" src="${url}" alt="Photo taken on Mars by 
+    ${state.selectedRover}"/>
+    `)
 }
 
 // ------------------------------------------------------  API CALLS
 
-// Example API call
-const getImageOfTheDay = (state) => {
-    let { apod } = state
+// const getRoverData = (state) => {
+//     const { selectedRover } = state
 
-    fetch(`http://localhost:3000/apod`)
+//     fetch(`/${selectedRover}`)
+//         .then(res => res.json())
+//         .then(data => updateStore({ data }))
+// }
+
+const getRoverData = (state) => {
+    const { selectedRover } = state
+    return fetch(`http://localhost:3000/rovers/${selectedRover}/photos`)
         .then(res => res.json())
-        .then(apod => updateStore(store, { apod }))
-
-    return data
+        .then(data => updateStore(data, state, RoverData))
 }
