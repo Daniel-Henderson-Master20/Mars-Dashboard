@@ -3,17 +3,20 @@ let store = {
     selectedRover: '',
     data: '',
     rovers: Immutable.List(['Spirit', 'Opportunity', 'Curiosity']),
-    RoverData: '',
 }
 
 // add our markup to the page
 const root = document.getElementById('root')
 
-const updateStore = (store, newState) => {
+const updateStore = (roverName, roverData) => {
+        newState = {}
+        newState[roverName] = roverData
         store = Object.assign(store, newState)
         render(root, store)
     }
     // use of async with render function
+
+console.log(store)
 const render = async(root, state) => {
     root.innerHTML = App(state)
 }
@@ -21,7 +24,7 @@ const render = async(root, state) => {
 // function that creates intro content
 const App = (state) => {
 
-    return `
+        return `
         <header><h1>Mars Rover Dashboard</h1></header>
         <main>
             <section>
@@ -32,14 +35,14 @@ const App = (state) => {
             <h3>A project by Daniel Henderson Developer</h3>
         </footer>
     `
-}
-
-// listening for load event, page should load before any JS is called
+    }
+    // listening for load event, page should load before any JS is called
 window.addEventListener('load', () => {
     render(root, store)
 })
 
 // ------------------------------------------------------  COMPONENTS
+
 
 const RoverData = (state) => {
 
@@ -68,6 +71,7 @@ const RoverData = (state) => {
         photos = state.data.results.latest_photos
     } else {
         photos = state.data.results.photos
+
     }
 
     // Map the photo array to get the URLs of the photos
@@ -145,26 +149,31 @@ const roverCardMakerFunction = (state, rover) => {
 //  * @param {string} url URL of the photo
 //  * @returns Image tag HTML
 //  */
-const photoElementMakerFunction = (state, url) => {
-    return (`
-    <img class="photo" src="${url}" alt="Photo taken on Mars by 
-    ${state.selectedRover}"/>
-    `)
-}
-
-// ------------------------------------------------------  API CALLS
-
-// const getRoverData = (state) => {
-//     const { selectedRover } = state
-
-//     fetch(`/${selectedRover}`)
-//         .then(res => res.json())
-//         .then(data => updateStore({ data }))
+// const photoElementMakerFunction = (data) => {
+//     const root = document.getElementById('root')
+//     root.innerHTML = `
+//     <div>
+//     <img class="${data.image.latest_photos[0].img_src}" alt="Photo taken on Mars/></div>
+//     `
 // }
 
-const getRoverData = (state) => {
-    const { selectedRover } = state
-    return fetch(`http://localhost:3000/rovers/${selectedRover}/photos`)
+// photoElementMakerFunction()
+
+// ------------------------------------------------------  API CALLS
+// roverNames = store.rovers // pull list from the store
+
+// roverNames.forEach((roverName) => {
+//     fetch(`http://localhost:3000/rovers/${roverName}/photos`)
+//         .then(res => res.json())
+//         .then(data =>
+//             updateStore(data.image.latest_photos[0]))
+// })
+
+roverNames = store.rovers // pull list from the store
+
+roverNames.forEach((roverName) => {
+    fetch(`http://localhost:3000/rovers/${roverName}/photos`)
         .then(res => res.json())
-        .then(data => updateStore(data, state, RoverData))
-}
+        .then(data =>
+            updateStore(roverName, data.image.latest_photos[0]))
+})
