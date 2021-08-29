@@ -1,0 +1,65 @@
+{
+    "selectedRover": "",
+    "rovers": [
+        "Spirit",
+        "Opportunity",
+        "Curiosity"
+    ],
+    "Spirit": {
+        "id": 318477,
+        "sol": 2208,
+        "camera": {
+            "id": 30,
+            "name": "PANCAM",
+            "rover_id": 7,
+            "full_name": "Panoramic Camera"
+        },
+        "img_src": "http://mars.nasa.gov/mer/gallery/all/2/p/2208/2P322473707ESFB27MP2600L8M1-BR.JPG",
+        "earth_date": "2010-03-21",
+        "rover": {
+            "id": 7,
+            "name": "Spirit",
+            "landing_date": "2004-01-04",
+            "launch_date": "2003-06-10",
+            "status": "complete"
+        }
+    },
+    "Opportunity": {
+        "id": 660735,
+        "sol": 5111,
+        "camera": {
+            "id": 17,
+            "name": "PANCAM",
+            "rover_id": 6,
+            "full_name": "Panoramic Camera"
+        },
+        "img_src": "https://mars.nasa.gov/mer/gallery/all/1/p/5111/1P581919922EFFD2FCP2682L8M1-BR.JPG",
+        "earth_date": "2018-06-11",
+        "rover": {
+            "id": 6,
+            "name": "Opportunity",
+            "landing_date": "2004-01-25",
+            "launch_date": "2003-07-07",
+            "status": "complete"
+        }
+    },
+    "Curiosity": {
+        "id": 876958,
+        "sol": 3220,
+        "camera": {
+            "id": 20,
+            "name": "FHAZ",
+            "rover_id": 5,
+            "full_name": "Front Hazard Avoidance Camera"
+        },
+        "img_src": "https://mars.nasa.gov/msl-raw-images/proj/msl/redops/ods/surface/sol/03220/opgs/edr/fcam/FLB_683347819EDR_F0910258FHAZ00341M_.JPG",
+        "earth_date": "2021-08-27",
+        "rover": {
+            "id": 5,
+            "name": "Curiosity",
+            "landing_date": "2012-08-06",
+            "launch_date": "2011-11-26",
+            "status": "active"
+        }
+    }
+}
