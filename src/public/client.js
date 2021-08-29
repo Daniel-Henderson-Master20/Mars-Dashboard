@@ -39,7 +39,7 @@ const onClick = (roverName) => {
     document.getElementById("section-me").innerHTML = (`
         <ul class="info-container">
         <li>Rover name: ${roverName}</li>
-        <li>Launched from Earth on: ${store[roverName].rover.launching_date}</li>
+        <li>Launched from Earth on: ${store[roverName].rover.launch_date}</li>
         <li>Landed on Mars on: ${store[roverName].rover.landing_date}</li>
         <li>Mission status: ${store[roverName].rover.status}</li>
         <div>Latest Photo:<img src= "${store[roverName].img_src}" alt="Latest photo captured by ${roverName} rover" width="500" height="500"></div>
